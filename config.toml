@@ -64,6 +64,19 @@ googleAnalytics = "c7442f5794ea2abb71c6ff05dc0b8779"
 	url    = "/introduction/"
 	weight = 100
 
+[[menu.main]]
+	name   = "规范标准"
+	identifier = "spec"
+	url    = "/spec/"
+	weight = 200
+
+[[menu.main]]
+	name   = "CloudEvents规范"
+	identifier = "spec-cloudevents"
+    parent = "spec"
+	url    = "/spec/cloudevents/"
+	weight = 200
+
 [blackfriday]
 	smartypants	= true
 	fractions = true
