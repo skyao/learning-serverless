@@ -59,23 +59,90 @@ googleAnalytics = "c7442f5794ea2abb71c6ff05dc0b8779"
 	weight = 1
 
 [[menu.main]]
-	name   = "介绍"
+	name   = "Serverless介绍"
 	identifier = "introduction"
 	url    = "/introduction/"
 	weight = 100
 
 [[menu.main]]
-	name   = "规范标准"
+	name   = "Serverless核心技术"
+	identifier = "technical"
+	url    = "/technical/"
+	weight = 200
+
+[[menu.main]]
+	name   = "Function"
+	identifier = "technical-function"
+	parent = "technical"
+	url    = "/technical/function/"
+	weight = 210
+
+[[menu.main]]
+	name   = "Eventing"
+	identifier = "technical-eventing"
+	parent = "technical"
+	url    = "/technical/eventing/"
+	weight = 220
+
+[[menu.main]]
+	name   = "Serverless规范"
 	identifier = "spec"
 	url    = "/spec/"
-	weight = 200
+	weight = 300
 
 [[menu.main]]
 	name   = "CloudEvents规范"
 	identifier = "spec-cloudevents"
-    parent = "spec"
+	parent = "spec"
 	url    = "/spec/cloudevents/"
-	weight = 200
+	weight = 310
+
+[[menu.main]]
+	name   = "Serverless项目"
+	identifier = "project"
+	url    = "/project/"
+	weight = 400
+
+[[menu.main]]
+	name   = "AWS Lambda"
+	identifier = "project-aws-lambda"
+	parent = "project"
+	url    = "/project/aws-lambda/"
+	weight = 410
+
+[[menu.main]]
+	name   = "Azure Functions"
+	identifier = "project-azure-functions"
+	parent = "project"
+	url    = "/project/azure-functions/"
+	weight = 420
+
+[[menu.main]]
+	name   = "Riff"
+	identifier = "project-riff"
+	parent = "project"
+	url    = "/project/riff/"
+	weight = 430
+
+[[menu.main]]
+	name   = "Pivotal Function Service"
+	identifier = "project-pfs"
+	parent = "project"
+	url    = "/project/pfs/"
+	weight = 480
+
+[[menu.main]]
+	name   = "函数编排"
+	identifier = "orchestration"
+	url    = "/orchestration/"
+	weight = 500
+
+[[menu.main]]
+	name   = "AWS Step Function"
+	identifier = "orchestration-aws-step-function"
+	parent = "orchestration"
+	url    = "/orchestration/aws-step-function/"
+	weight = 510
 
 [blackfriday]
 	smartypants	= true

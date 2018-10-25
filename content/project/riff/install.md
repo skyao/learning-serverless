@@ -1,4 +1,13 @@
-# 安装riff
+---
+date: 2018-10-25T17:10:00+08:00
+title: 安装riff
+weight: 419
+menu:
+  main:
+    parent: "project-riff"
+description : "安装riff"
+---
+
 
 ## 安装CLI
 

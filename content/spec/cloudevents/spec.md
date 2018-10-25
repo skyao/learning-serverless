@@ -1,7 +1,7 @@
 ---
 date: 2018-10-24T23:10:00+08:00
 title: 核心规范Version 0.1
-weight: 212
+weight: 312
 menu:
   main:
     parent: "spec-cloudevents"

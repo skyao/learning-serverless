@@ -1,6 +1,11 @@
-# riff
+---
+date: 2018-10-25T09:51:00+08:00
+title: Riff项目
+weight: 430
+description : "Riff项目"
+---
 
-![riff logo](https://github.com/projectriff/riff/raw/master/logo.png)
+![riff logo](images/riff-logo.png)
 
 ## 介绍
 

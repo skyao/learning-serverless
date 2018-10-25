@@ -1,7 +1,7 @@
 ---
 date: 2018-10-24T23:00:00+08:00
 title: CloudEvents规范
-weight: 210
+weight: 310
 description : "介绍CloudEvents规范"
 ---
 
