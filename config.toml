@@ -125,6 +125,13 @@ googleAnalytics = "c7442f5794ea2abb71c6ff05dc0b8779"
 	weight = 430
 
 [[menu.main]]
+	name   = "Google Cloud Run"
+	identifier = "project-cloudrun"
+	parent = "project"
+	url    = "/project/cloudrun/"
+	weight = 440
+
+[[menu.main]]
 	name   = "Pivotal Function Service"
 	identifier = "project-pfs"
 	parent = "project"
