@@ -111,31 +111,52 @@ googleAnalytics = "c7442f5794ea2abb71c6ff05dc0b8779"
 	weight = 410
 
 [[menu.main]]
+	name   = "AWS Event Bridge"
+	identifier = "project-aws-event-bridge"
+	parent = "project"
+	url    = "/project/aws-eventbridge/"
+	weight = 420
+
+[[menu.main]]
 	name   = "Azure Functions"
 	identifier = "project-azure-functions"
 	parent = "project"
 	url    = "/project/azure-functions/"
-	weight = 420
+	weight = 430
 
 [[menu.main]]
 	name   = "Riff"
 	identifier = "project-riff"
 	parent = "project"
 	url    = "/project/riff/"
-	weight = 430
+	weight = 440
 
 [[menu.main]]
 	name   = "Google Cloud Run"
 	identifier = "project-cloudrun"
 	parent = "project"
 	url    = "/project/cloudrun/"
-	weight = 440
+	weight = 450
 
 [[menu.main]]
 	name   = "Pivotal Function Service"
 	identifier = "project-pfs"
 	parent = "project"
 	url    = "/project/pfs/"
+	weight = 460
+
+[[menu.main]]
+	name   = "TriggerMesh EveryBridge"
+	identifier = "project-triggermesh-everybridge"
+	parent = "project"
+	url    = "/project/triggermesh-everybridge/"
+	weight = 470
+
+[[menu.main]]
+	name   = "Solace Event Mesh"
+	identifier = "project-solace-eventmesh"
+	parent = "project"
+	url    = "/project/solace-eventmesh/"
 	weight = 480
 
 [[menu.main]]

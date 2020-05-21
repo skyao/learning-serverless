@@ -1,25 +1,45 @@
 ---
 date: 2018-10-24T23:00:00+08:00
-title: CloudEvents规范
+title: CloudEvents
 weight: 310
 description : "介绍CloudEvents规范"
 ---
 
-CloudEvents是一种以通用方式描述事件数据的规范。CloudEvents旨在简化跨服务，平台及其他方面的事件声明和发送。CloudEvents　最初由　CNCF Severless 工作组提出。
-
-> 备注：以下内容来自 https://github.com/cloudevents/spec
-
 ## 介绍
 
-![CloudEvents logo](images/cloudevents-horizontal-color.png)
+<img src="images/cloudevents-icon-color.png" style="zoom: 10%;" />
 
-事件无处不在。 但是，事件发布者倾向于以不同方式描述事件。
+CloudEvents是一种以通用方式描述事件数据的规范。CloudEvents旨在简化跨服务，平台及其他方面的事件声明和发送。CloudEvents　最初由　CNCF Severless 工作组提出。
 
-缺乏描述事件的常用方法意味着开发人员必须不断重新学习如何接收事件。这也限制了库，工具和基础设施的可能性，以帮助跨环境（如SDK，事件路由器或跟踪系统）发送事件数据。我们可以从事件数据中实现的可移植性和生产力总体上受到阻碍。
+> A specification for describing event data in a common way
+>
+> 以通用方式描述事件数据的规范
 
-来到CloudEvents，这是一种以通用方式描述事件数据的规范。CloudEvents旨在简化跨服务，平台及其他方面的事件声明和发送。
+### 为什么需要CloudEvents？
 
-CloudEvents是一项新的努力，已经获得了令人惊讶的行业兴趣，从主要的云提供商到流行的SaaS公司。CloudEvents由Cloud Native Computing Foundation（CNCF）作为沙箱级项目托管。
+事件无处不在，然而事件发布者对事件的描述却往往不尽相同。
+
+- 一致性：缺乏通用的事件描述方式，意味着开发人员必须为每个事件源编写新的事件处理逻辑。
+- 无障碍环境：没有通用的事件格式意味着没有通用的库、工具和基础设施来跨环境投递事件数据。CloudEvents提供了Go、JavaScript、Java、C#、Ruby和Python的SDK，可用于构建事件路由器、跟踪系统和其他工具。
+- 可移植性：整体上阻碍了我们从事件数据中实现的可移植性和生产力。
+
+### 什么是CloudEvents？
+
+CloudEvents 是一个以通用方式描述事件数据的规范。CloudEvents旨在大幅简化跨服务、跨平台的事件声明和投递。
+
+CloudEvents是一项新的工作，目前仍在积极开发中。然而，它的工作小组已经收到了令人惊讶的行业兴趣，从主要的云提供商到流行的SaaS公司都有。该规范现在由云原生计算基金会（Cloud Native Computing Foundation/CNCF）负责。
+
+CloudEvents是通过CNCF的Serverless工作组组织的。
+
+### 1.0版本
+
+2019年10月24日，CloudEvents项目取得了两项重大成果。第一，CNCF的技术监督委员会批准该项目成为 "孵化器 "项目（从而使其从CNCF的 "沙盒"毕业）。第二，CloudEvents规范发布了1.0版本!
+
+这是该规范的第一个主要版本，代表了整个serverless社区中一个真正伟大的团队两年来的努力工作。我们已经有几乎所有主要的云提供商参与其中，还有一些 "终端用户 "公司以及许多个人参与者，他们都在努力工作以制作出一个规范，希望在这一里程碑式的发展过程中，能够继续得到更多的采用。
+
+除了核心的CloudEvents规范外，还有Primer和协议及格式规范，所有这些都可以在GitHub repo中找到。此外，还有六种不同的SDK-Go、JavaScript、Java、C#、Ruby和Python，帮助生产和消费CloudEvents。
+
+CNCF Serverless工作组将决定下一步的工作重点（例如，额外的CloudEvents相关活动，或者解决社区正在经历的其他互操作性痛点）。所以，如果你有兴趣，请加入每周的定期电话会议。此外，还有工作流规范方面的工作正在进行中。
 
 ## 历史
 
@@ -27,15 +47,19 @@ CNCF Severless 工作组最初是由 CNCF 技术监督委员会创立的，旨�
 
 尽管 CloudEvents 的工作最初是作为 Serverless 工作组的一部分开展的，当规范到达 v0.1 里程碑之后，TOC 批准了 CloudEvents 成为一个独立的 CNCF 沙盒项目。
 
-## 流程
+TODO：补充发展过程。
 
-CloudEvents项目致力于根据[设计目标]({{< relref "spec.md#设计目标" >}})正式确定[规范]({{< relref "spec.md" >}})，设计目标侧重于生成和响应事件的系统之间的互操作性。
+## 集成
 
-为了实现这些目标，项目必须描述：
+|                                                              |                              | 支持情况                                                     |
+| ------------------------------------------------------------ | ---------------------------- | ------------------------------------------------------------ |
+| <img src="images/azure-event-grid.png" style="zoom:10%;" />  | Azure Event Grid             | Event Grid原生支持CloudEvents v1.0 JSON实现中的事件和HTTP协议绑定。 |
+| <img src="images/knative.png" style="zoom:5%;" />            | Knative Eventing             | 所有由Knative Eventing service产生和消费的事件数据均符合CloudEvents标准 |
+| <img src="images/serverless-event-gateway.png" style="zoom:10%;" /> | Serverless.com Event Gateway | 函数从事件网关接收的所有事件数据均符合 CloudEvents 标准      |
+| <img src="images/openfaas.svg" style="zoom:40%;" />          | OpenFaaS                     | CloudEvent事件是OpenFaaS函数的众多可用触发器之一。           |
+| <img src="images/choria.png" style="zoom:5%;" />             | Choria                       | Choria 编排系统发出的所有生命周期和自主代理事件都符合 CloudEvents 的标准。 |
+| <img src="images/knative.png" style="zoom:5%;" />            | Oracle Cloud                 | Oracle云基础设施事件服务实现了CloudEvents                    |
 
-- 促进互操作性的事件的公共属性
-- 一个或多个的通用体系结构,现在正在使用或计划由其成员构建
-- 如何将事件从生产者传输到消费者，通过至少一种协议
-- 识别并解决互操作性所需的任何其他内容
+
 
 
