@@ -158,7 +158,11 @@ CloudEvents规范的目标是定义事件系统的互操作性，这些事件系
 
 #### Message/消息
 
-事件通过消息从源传输到目的地。
+事件通过消息从源（Source）传输到目的地（Destination）。
+
+“结构化模式报文/structured-mode message” 是指使用独立的事件格式对事件进行完全编码并存储在消息主体中。
+
+“二进制模式报文/binary-mode message" 是指事件数据（event data）存储在消息体中，事件属性作为消息元数据的一部分存储。
 
 #### Data/数据
 
@@ -168,110 +172,280 @@ CloudEvents规范的目标是定义事件系统的互操作性，这些事件系
 
 消息可以通过各种行业标准协议（例如HTTP，AMQP，MQTT，SMTP），开源协议（例如Kafka，NATS）或平台/供应商特定协议（AWS Kinesis，Azure Event Grid）来传递。
 
-## 类型系统
+#### Protocol Binding/协议绑定
 
-以下抽象数据类型可用于属性。
+协议绑定描述了事件如何通过给定协议发送和接收事件，特别是事件如何映射到该协议中的消息。
 
-- `String` - 可打印的Unicode字符序列。
+## 上下文属性
+
+符合本规范的每个 CloudEvent 必须包含上下文属性，而且要指定为 REQUIRED，可以包含一个或多个 OPTIONAL 上下文属性，也可以包含一个或多个扩展属性。
+
+这些属性在描述事件的同时，被设计为可以 **独立于事件数据进行序列化**。这使得它们可以在目的地被检查，而不需要对事件数据进行反序列化。
+
+### 属性命名约定
+
+CloudEvents 规范定义了对各种协议和编码的映射，随附的 CloudEvents SDK 针对各种运行时和语言。其中有些将元数据元素视为大小写敏感，而另一些则不敏感，而且单个 CloudEvents 可能会通过多个跳转来实现，中间涉及协议、编码和运行时。因此，本规范限制了所有属性的可用字符集，以防止大小写敏感问题或与通用语言中标识符的允许字符集冲突。
+
+CloudEvents 属性名称必须由 ASCII 字符集中的小写字母（'a'至'z'）或数字（'0'至'9'）组成。属性名称应具有描述性和简洁性，长度不得超过 20 个字符。
+
+### 类型系统
+
+以下是可用于属性中的抽象数据类型。这些类型中的每个类型都可以由不同的事件格式和协议元数据字段来表示。本规范为每个类型定义了一个标准的字符串编码，所有的实现都必须支持。
+
+- `Boolean` - 值为 "true "或 "false "的布尔值。
+
+	* 字符串编码：大小写敏感的 "true "或 "false" 值。
+
+- `Integer` -2,147,483,648到+2,147,483,647之间的整数。这是一个有符号的、32位的、二进制编码的范围。事件格式不一定要使用这个编码，但它们必须只使用这个范围内的整数值。
+
+	* 字符串编码: 根据RFC 7159，第6节，JSON号码的整数部分。
+
+- `String` - 允许的Unicode字符序列。以下字符不允许使用。
+
+	* U+0000-U+001F 和 U+007F-U+009F (两个范围都包括在内)中的 "控制字符"，因为大多数字符没有约定的含义，有些字符，如 U+000A (换行符)，在HTTP 头等上下文中不能使用。
+
+	* 代码点被Unicode识别为非字符。
+
+	* U+D800-U+DBFF和U+DC00-U+DFFF，这两个范围都包括在内，除非正确地成对使用。因此，（在JSON符号中）"\uDEAD "是无效的，因为它是一个未配对的代名词，而"\uD800\uDEAD "是合法的。
+
 - `Binary` - 字节序列。
-- `Map` - 对象类型值的字符串索引字典
-- `Object` - String`, 或 `Binary`, 或 `Map`
-- `URI` - 符合 `URI-reference` 的字符串表达式，在 [RFC 3986 §4.1](https://tools.ietf.org/html/rfc3986#section-4.1) 中定义。
-- `Timestamp` - 字符串表达式，在 [RFC 3339](https://tools.ietf.org/html/rfc3339) 中定义
 
-此规范未定义数字或逻辑类型。
+	* 字符串编码: Base64 编码，按照 RFC4648 的规定进行编码。
 
-Object类型是一种变体类型，可以是String或Binary或Map。类型系统是有意抽象的，因此留给实现如何表示变体类型。
+- URI--绝对统一的资源标识符。
 
-## Context属性
+	* 字符串编码：RFC4648中定义的绝对统一资源标识符。字符串编码：RFC 3986 第 4.3 节中定义的绝对 URI。
+	
+- URI-reference - 统一资源标识符引用。
 
-符合此规范的每个事件都必须包含上下文。
+	* 字符串编码：RFC 3986 第4.3 节中定义的URI-reference。URI-reference - RFC 3986 第4.1 节中定义的URI-reference。
+	
+- Timestamp - 使用Gregorian Calendar的日期和时间表达式。
 
-上下文被设计为可以与事件数据分开发送（例如，在协议header或协议特定属性中）。这允许在目的地检查上下文，而不必反序列化事件数据。对于某些用例，上下文可能还是需要对事件数据进行序列化（例如，JSON实现可能使用一个包含上下文和数据的JSON对象）。
+	* 字符串编码：RFC 3339。
 
-### eventType
+所有的上下文属性值必须是上面列出的类型之一。属性值可以以本地类型或标准字符串的形式呈现。
 
-- 类型: `String`
-- 描述：已发生的事件类型。此属性通常用于路由，可观察性，策略实施等。
-- 约束:
-  - 必须
-  - 必须是非空字符串
-  - 应该以反向DNS名称为前缀。前缀域名指示定义此事件类型语义的组织。
-- 示例
-  - com.github.pull.create
+表示 CloudEvent 或任何扩展的强类型编程模型必须能够将常规字符串编码转换为最适合抽象类型的运行时/语言原生类型。
 
-### eventTypeVersion
+例如，在给定的实现中，时间属性可以用语言的本机日期时间类型来表示，但必须提供 RFC3339 字符串，并且在映射到 HTTP 消息的报文头时，必须可转换为 RFC3339 字符串。
 
-- 类型: `String`
-- 描述：eventType的版本。 这使得最终消费者能够解释数据，要求消费者了解生产者。
-- 约束:
-  - 可选
-  - 如果有，必须是非空字符串
+同样，CloudEvents 协议绑定或事件格式实现也必须能够在编码或协议元数据字段中将标准字符串编码转换为相应的数据类型。
 
-### cloudEventsVersion
+时间戳类型的属性值确实可以作为一个字符串通过多次跳转，并且只在生产者和最终消费者那里以本地运行时/语言类型的形式实现。时间戳也可能被路由为本地协议类型，并可能在生产者和消费者端被映射到/从各自的语言/运行时类型，而永远不会以字符串的形式实现。
 
-- 类型: `String`
-- 描述：事件使用的CloudEvents规范的版本。这使得能够解释上下文。
-- 约束:
-  - 必须
-  - 必须是非空字符串
+序列化机制的选择将决定上下文属性和事件数据的序列化方式。例如，在JSON序列化的情况下，上下文属性和事件数据可能同时出现在同一个JSON对象中。
 
-### source
+## 必须的属性
 
-- 类型: `URI`
-- 描述：描述事件生产者。通常包括诸如事件源的类型，发布事件的组织以及一些独特的标识符之类的信息。URI中编码数据背后的确切语法和语义是事件生产者定义的。
-- 约束:
-  - 必须
+以下属性必须在所有 CloudEvents 中出现。
 
-### eventID
+#### id
 
-- 类型: `String`
-- 描述：事件的ID。 此字符串的语义未显式定义，以简化生产者的实现。启用重复数据删除。
-- 示例:
-  - 数据库 commit ID
-- 约束:
-  - 必须
-  - 必须是非空字符串
-  - 必须在生产者范围内唯一
+- Type: `String`
+- 描述: 标示事件。生产者必须确保 `source` + `id`  对于每个独立的事件都是唯一的。如果一个重复的事件被重新发送（例如，由于网络错误），它可能有相同的id。消费者可能会认为 source 和 id 相同的事件是重复的。
+- Examples:
+	- 由生产者维护的事件计数器
+	- UUID
+- Constraints:
+	- REQUIRED
+	- 必须是一个非空字符串
+	- 必须在生产者范围内是唯一的
 
-### eventTime
 
-- 类型: `Timestamp`
-- 描述：事件发生的时间戳
-- 约束:
-  - 可选
-  - 如果有, 必须符合 [RFC 3339](https://tools.ietf.org/html/rfc3339) 中定义的格式
 
-### schemaURL
+#### source
 
-- 类型: `URI`
-- 描述：指向`data`属性所遵循的模式的链接。
-- 约束:
-  - 可选
-  - 如果有, 必须符合 [RFC 3986](https://tools.ietf.org/html/rfc3986) 中定义的格式
+- Type: `URI-reference`
 
-### contentType
+- Description: 标示事件发生的上下文。通常包括事件源的类型、发布事件的组织或产生事件的过程等信息。URI 中编码的数据背后的确切语法和语义由事件生产者定义。
 
-- 类型: `String`
-- 描述：描述数据编码格式
-- 约束:
-  - 可选
-  - 如果有, 必须符合 [RFC 2046](https://tools.ietf.org/html/rfc2046) 中定义的格式
-- 对于 Media Type 的示例，见 [IANA Media Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
+	生产者必须确保 `source` + `id`  对于每个独立的事件都是唯一的。
 
-### extensions
+	应用程序可以为每个独立的生产者分配一个唯一的source，这样就很容易产生唯一的ID，因为没有其他生产者会有相同的source。应用程序可以使用 UUIDs、URNs、DNS 权限或特定于应用程序的方案来创建唯一的source标识符。
 
-- 类型: `Map`
-- 描述：用于其他元数据的，并且没有强制结构。这为生产者或中间件可能想要包含的自定义字段提供了一个位置，并在将元数据添加到CloudEvents规范之前提供了测试元数据的位置。
-- 约束:
-  - 可选
-  - 如果有，必须包含至少一个条目
-- 示例:
-  - 认证数据
+	一个源也可以包括多个的生产者。在这种情况下，生产者必须合作，确保 `source` + `id`  对于每个独立的事件都是唯一的。
 
-### data
+- Constraints:
 
-- 类型: `Object`
-- 描述：事件负载。载荷取决于eventType，schemaURL和eventTypeVersion，载荷被编码成由contentType属性（例如application/json）指定的媒体格式。
-- 约束:
-  - 可选
+	- REQUIRED
+	- MUST be a non-empty URI-reference
+	- 推荐使用绝对URI
+
+- Examples
+
+	- 全网唯一的URI，具有DNS权限。
+		- https://github.com/cloudevents
+		- mailto:[cncf-wg-serverless@lists.cncf.io](mailto:cncf-wg-serverless@lists.cncf.io)
+	- 通用唯一的URN与UUID
+		- urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66
+	- 应用特定的标识符
+		- /cloudevents/spec/pull/123
+		- /sensors/tn-1234567/alerts
+		- 1-555-123-4567
+
+#### specversion
+
+- Type: `String`
+- Description: 事件所使用的 CloudEvents 规范的版本。该版本可用于解释上下文。兼容的事件制作者在引用此版本的规范时，必须使用 1.0 的值。
+- Constraints:
+	- REQUIRED
+	- MUST be a non-empty string
+
+#### type
+
+- Type: `String`
+- Description: 该属性包含一个描述事件类型的值，描述与起源事件相关的事件类型。该属性通常用于路由、可观察性、策略执行等。该属性的格式是由生产者定义的，可能包括类型的版本等信息--更多信息请参见Primer中的属性版本化。
+- Constraints:
+	- REQUIRED
+	- MUST be a non-empty string
+	- 应该以一个反转的DNS名称为前缀。前缀域决定了定义这个事件类型的语义的组织。
+- Examples
+	- com.github.pull.create
+	- com.example.object.delete.v2
+
+
+
+### 可选属性
+
+以下为可在 CloudEvents 中出现的可选属性。有关 OPTIONAL 定义的更多信息，请参阅 Notational Conventions 部分。
+
+#### datacontenttype
+
+- Type: `String` per [RFC 2046](https://tools.ietf.org/html/rfc2046)
+
+- Description: data 值的内容类型。该属性使数据可以携带任何类型的内容，其格式和编码可能与所选事件格式不同。例如，使用JSON信封格式渲染的事件可能会携带一个XML有效载荷的数据，这个属性被设置为 "application/xml "就会通知消费者。不同的数据内容如何渲染不同的数据内容类型值的规则在事件格式规范中定义了；例如，JSON事件格式在3.1节中定义了这种关系。
+
+	对于一些二进制模式的协议绑定，该字段直接映射到各自协议的内容类型元数据属性。二进制模式和内容类型元数据映射的规范性规则可以在相应的协议中找到。
+
+	在某些事件格式中，datacontententtype属性可能会被省略。例如，如果一个JSON格式的事件没有datacontententtype属性，那么就意味着数据是符合 "application/json "媒体类型的JSON值。换句话说：一个没有datacontententtype的JSON格式事件与一个datacontenttype="application/json "的事件完全等同。
+
+	当将一个没有datacontenttype属性的事件消息翻译成不同的格式或协议绑定时，目标datacontenttype应该明确地设置为源的隐含datacontenttype。
+
+- Constraints:
+
+	- OPTIONAL
+	- 如果存在，必须遵守RFC 2046中规定的格式。
+
+- For Media Type examples see [IANA Media Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
+
+#### dataschema
+
+- Type: `URI`
+- 指明 data 所遵循的 schema。对模式的不兼容的更改应该通过不同的URI来反映。更多信息请参见Primer中的属性版本化。
+- Constraints:
+	- OPTIONAL
+	- If present, MUST be a non-empty URI
+
+#### subject
+
+- Type: `String`
+
+- Description: 描述了事件生产者（通过 source 标识）上下文中的事件主题。在发布-订阅场景中，订阅者通常会订阅由源发出的事件，但如果源上下文有内部子结构，仅有源标识符可能不足以作为任何特定事件的限定符。
+
+	在上下文元数据中识别事件的主体（而不是仅在 data 有效载荷中），这在中间件无法解释 data 内容的通用订阅过滤场景中特别有帮助。在上面的例子中，订阅者可能只对以'.jpg'或'.jpeg'结尾的blob感兴趣，而主题属性允许为该事件的子集构造一个简单有效的字符串后缀过滤器。
+
+- Constraints:
+
+	- OPTIONAL
+	- If present, MUST be a non-empty string
+
+- Example:
+
+	- 当在blob-存储容器内创建新的blob时，订阅者可能会注册兴趣。在这种情况下，事件 source 标识了订阅范围（存储容器），type 标识了 "blob创建 "事件，id唯一标识了事件实例，以区分已创建的相同名称的blob的单独出现；新创建的blob的名称在 subject中携带。
+		* source：https://example.com/storage/tenant/container
+		* subject:  mynewfile.jpg
+
+#### time
+
+- Type: `Timestamp`
+- Description: 事件发生的时间戳。如果无法确定事件发生的时间，则该属性可以由 CloudEvents 生产者设置为其他时间（如当前时间），但同一源的所有生产者在这方面必须保持一致。换句话说，它们要么都使用实际发生的时间，要么都使用相同的算法来确定所使用的值。
+- Constraints:
+	- OPTIONAL
+	- If present, MUST adhere to the format specified in [RFC 3339](https://tools.ietf.org/html/rfc3339)
+
+### 扩展上下文属性
+
+CloudEvent 可包含任意数量的具有不同名称的附加上下文属性，称为 "扩展属性"。扩展属性必须遵循与标准属性相同的命名惯例，并使用与标准属性相同的类型系统。扩展属性在本规范中没有定义的含义，它们允许外部系统将元数据附加到事件中，就像HTTP自定义头一样。
+
+扩展属性总是按照与标准属性一样的绑定规则进行序列化。然而，本规范并不妨碍扩展将事件属性值复制到消息的其他部分，以便与同样处理消息的非CloudEvents系统进行交互。这样做的扩展规范应该指定如果复制的值与 cloud event 序列化的值不同，接收者应该如何解释消息。
+
+#### 定义扩展
+
+请参阅 CloudEvent 属性扩展，了解有关扩展的使用和定义的更多信息。
+
+扩展的定义应该完全定义属性的所有方面，例如，其名称、类型、语义和可能的值。新的扩展定义应该使用一个描述性足够强的名称，以减少与其他扩展名称碰撞的可能性。特别是，扩展作者应该检查文档中的扩展文档中的已知扩展集--不仅仅是检查可能的名称冲突，还应该检查可能感兴趣的扩展。
+
+许多协议支持发送者包含附加元数据的能力，例如作为 HTTP 头文件。虽然 CloudEvents 接收方没有被强制要求处理和传递这些元数据，但建议他们通过某种机制来处理和传递这些元数据，以表明它们是非 CloudEvents 元数据。
+
+下面是一个例子，说明了对附加属性的需求。在许多 IoT 和企业用例中，一个事件可以在无服务器的应用程序中使用，该事件可以在多个类型的事件中执行操作。为了支持这样的用例，事件生产者需要在 "上下文属性 "中添加额外的身份属性，事件消费者可以使用这些属性将该事件与其他事件关联起来。如果这种身份属性恰好是事件 "数据 "的一部分，事件生产者也将把身份属性添加到 "上下文属性 "中，这样，事件消费者就可以方便地访问这些信息，而不需要解码和检查事件数据。这样的身份属性也可以用来帮助中间网关确定如何路由事件。
+
+## 事件数据
+
+正如术语 "Data "所定义的那样，CloudEvents 可包括与事件发生相关的领域特定信息。如果存在，此信息将被封装在 data 中。
+
+- 描述：事件有效载荷（Payload）。本规范不对该信息的类型进行任何限制。它被编码成由datacontententtype属性指定的媒体格式（例如：application/json），并且当这些相应的属性存在时，它将遵循dataschema格式。
+- Constraints:
+	- OPTIONAL
+
+## 大小限制
+
+在许多场景中，CloudEvents 将通过一个或多个通用中间人转发，每个中间人都可能会对转发事件的大小进行限制。CloudEvents 也可能会被转发到消费者，比如嵌入式设备，这些设备受存储或内存限制，因此在处理大的单一事件时可能会很吃力。
+
+事件的 "大小"是指事件的线上（wire-size）大小，包括事件的线上传输的每一个比特：协议帧元数据、事件元数据和事件数据，基于所选的事件格式和所选的协议绑定。
+
+如果应用配置要求在不同的协议之间转发事件，或要求对事件进行重新编码，则应考虑应用所使用的最有效的协议和编码，以符合这些大小限制。
+
+- 中间商必须转发大小为64KByte或以下的事件。
+- 消费者应接受至少64 KByte大小的事件。
+
+实际上，这些规则将允许生产者安全地发布大小不超过64KB的事件。这里的 "安全 "指的是，一般来说，期望事件被所有中间人接受并转发是合理的。出于本地的考虑，它是否愿意接受或拒绝该大小的事件，是在任何特定消费者的控制范围内。
+
+一般来说，CloudEvents 发布者应该通过避免在事件有效载荷中嵌入大型数据项来保持事件的紧凑性，而是使用事件有效载荷链接到这些数据项。从访问控制的角度来看，这种方法还可以让事件的分布范围更广，因为通过解析链接访问事件相关的细节，可以实现差异化的访问控制和选择性的披露，而不是直接将敏感细节嵌入事件中。
+
+## 隐私和安全
+
+互操作性是本规范背后的主要驱动力，要实现这样的行为，需要将一些信息公开，导致信息泄露的可能性。
+
+请考虑以下几点，以防止不经意间的泄漏，特别是在利用第三方平台和通信网络时。
+
+- 上下文属性
+
+	敏感信息不应在上下文属性中携带或表示。
+
+	CloudEvent 生产者、消费者和中间人可以审查并记录上下文属性。
+
+- Data
+
+	领域特定 event data 应进行加密，以限制受信任方的可见性。用于这种加密的机制是生产者和消费者之间的协议，因此不属于本规范的范围。
+
+- Protocol Bindings
+
+	应采用协议级的安全性，以确保CloudEvents的可信和安全交换。
+
+
+
+# 示例
+
+下面的示例展示了一个被序列化为JSON的CloudEvent：
+
+```json
+{
+    "specversion" : "1.0",
+    "type" : "com.github.pull.create",
+    "source" : "https://github.com/cloudevents/spec/pull",
+    "subject" : "123",
+    "id" : "A234-1234-1234",
+    "time" : "2018-04-05T17:31:00Z",
+    "comexampleextension1" : "value",
+    "comexampleothervalue" : 5,
+    "datacontenttype" : "text/xml",
+    "data" : "<much wow=\"xml\"/>"
+}
+```
+
+
+
+
+
+
