@@ -8,7 +8,7 @@ TBD: Serverless介绍。
 
 这是个人学习Serverless的笔记，请点击下面的链接阅读:
 
-- [在线阅读](https://skyao.io/learning-serverless/)：hugo格式，界面清爽。托管于腾讯云香港节点，速度快，偶尔抽风
+- [在线阅读](https://skyao.net/learning-serverless/)：hugo格式，界面清爽。托管于腾讯云香港节点，速度快，偶尔抽风
 - [@github](https://github.com/skyao/learning-serverless/)：源码托管于github，如有谬误或需讨论，请提issue，欢迎提交PR
 
 ### 版权申明
